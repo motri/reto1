@@ -1,8 +1,7 @@
 from deustorl.common import *
+from deustorl.common import QTable
 from deustorl.helpers import TensorboardLogger
 
-
-# Clase Q-SARSA, combinación de Q-Learning y SARSA con dos tablas de estimación Q
 class Q_SARSA:
     def __init__(self, env):
         # Inicializamos dos tablas Q: una para Q-Learning y otra para SARSA
@@ -12,11 +11,11 @@ class Q_SARSA:
         self.q_table2 = QTable(n_states, n_actions)  # Tabla Q para SARSA
         self.env = env
 
-    # Función de aprendizaje del algoritmo Q-SARSA
     def learn(self, policy, n_steps=100, discount_rate=1, lr=0.01, lrdecay=1.0, n_episodes_decay=100, tb_episode_period=100, verbose=False):
         # Inicia el ambiente y selecciona la acción inicial
         obs, _ = self.env.reset()
-        selected_action = policy(self.q_table1[obs])
+        alpha = 0.7  # Empezamos con un 70% de peso para SARSA
+        selected_action = np.argmax(self.combine_q_values(obs, alpha=alpha))
 
         # Inicialización del registro en Tensorboard
         tblogger = TensorboardLogger("Q-SARSA (dr=" + str(discount_rate) + "-lr=" + str(lr) + "-lrdecay=" + str(lrdecay) + "e" + str(n_episodes_decay) + ")", episode_period=tb_episode_period)
@@ -36,8 +35,9 @@ class Q_SARSA:
             episode_reward += reward
             episode_steps += 1
 
-            # Selección de la próxima acción usando la política epsilon-greedy
-            selected_action = policy(self.q_table1[obs])
+            # Selección de la próxima acción usando la política epsilon-greedy y una combinación ponderada de Q
+            combined_q_values = self.combine_q_values(obs, alpha=alpha)
+            selected_action = np.argmax(combined_q_values)
 
             # Actualización de la Tabla Q1 con Q-Learning
             max_qvalue1 = max(self.q_table1[obs])
@@ -54,13 +54,15 @@ class Q_SARSA:
                 episode_reward = 0
                 episode_steps = 0
                 obs, _ = self.env.reset()
-                selected_action = policy(self.q_table1[obs])
+                selected_action = np.argmax(self.combine_q_values(obs, alpha=alpha))
                 
-                # Actualización de la tasa de aprendizaje por episodios
+                # Actualización de la tasa de aprendizaje y alpha por episodios
                 n_episodes += 1
                 if n_episodes % n_episodes_decay == 0:
                     lr *= lrdecay
+                    # Reducir progresivamente alpha, sin bajar de 0.3 para conservar exploración
+                    alpha = max(0.3, alpha - 0.05)
 
-    # Función para combinar ambas tablas Q usando una media ponderada
     def combine_q_values(self, state, alpha=0.5):
+        # Combinación ponderada de ambas tablas Q, usando alpha como peso
         return alpha * self.q_table1[state] + (1 - alpha) * self.q_table2[state]

@@ -67,7 +67,7 @@ class OptunaOptimizer:
         # Evaluate policy performance and return average reward
         avg_reward, avg_steps = evaluate_policy(
             algo.env, 
-            algo.q_table1 if algo_name == "q_sarsa" or algo_name == "doublesarsa" else algo.q_table, 
+            algo.q_table2 if algo_name == "q_sarsa" or algo_name == "doublesarsa" else algo.q_table, 
             max_policy, 
             n_episodes=100
         )

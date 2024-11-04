@@ -63,7 +63,7 @@ class LearnConParams:
         print(lr_episodes_decay)
         epsilon = self.params.get("epsilon")
         print(epsilon)
-        n_steps = 1_500_000  # Set a default value or load from params if desired
+        n_steps = 2_500_000  # Set a default value or load from params if desired
 
         # Define the epsilon-greedy policy
         epsilon_greedy_policy = EpsilonGreedyPolicy(epsilon=epsilon)

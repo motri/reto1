@@ -73,7 +73,7 @@ class OptunaOptimizer:
         )
         return avg_reward
 
-    def optimize(self, n_trials=10):
+    def optimize(self, n_trials=100):
         # Optimize hyperparameters over n_trials and save results
         print(f"Searching for the best hyperparameters in {n_trials} trials...")
         self.study.optimize(self.objective, n_trials=n_trials)

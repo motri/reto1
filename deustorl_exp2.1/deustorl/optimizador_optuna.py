@@ -33,13 +33,13 @@ class OptunaOptimizer:
     def objective(self, trial):
         # Define hyperparameter search space
         algo_name = self.study_name
-        lr = trial.suggest_float("learning_rate", 1e-5, 1e-1, log=True)
+        lr = trial.suggest_float("learning_rate", 1e-2, 0.2, log=True)
         lr_decay = trial.suggest_float("learning_rate_decay", 0.9, 1.0, step=0.01)
         lr_episodes_decay = trial.suggest_categorical("lr_episodes_decay", [100, 1_000, 10_000])
         discount_rate = trial.suggest_float("discount_rate", 0.8, 1.0, step=0.05)
         epsilon = trial.suggest_float("epsilon", 0.0, 0.4, step=0.05)
         
-        n_steps = 200_000  # Fixed number of steps for learning
+        n_steps = 250_000  # Fixed number of steps for learning
 
         # Instantiate the algorithm based on algo_name
         if algo_name == "q_sarsa":
@@ -67,9 +67,9 @@ class OptunaOptimizer:
         # Evaluate policy performance and return average reward
         avg_reward, avg_steps = evaluate_policy(
             algo.env, 
-            algo.q_table2 if algo_name == "q_sarsa" or algo_name == "doublesarsa" else algo.q_table, 
+            algo.q_table1 if algo_name == "q_sarsa" or algo_name == "doublesarsa" else algo.q_table, 
             max_policy, 
-            n_episodes=100
+            n_episodes=200
         )
         return avg_reward
 

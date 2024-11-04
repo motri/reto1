@@ -15,7 +15,7 @@ class Q_SARSA:
         # Inicia el ambiente y selecciona la acción inicial
         obs, _ = self.env.reset()
         alpha = 0.7  # Empezamos con un 70% de peso para SARSA
-        selected_action = np.argmax(self.combine_q_values(obs, alpha=alpha))
+        selected_action = policy(self.calcula_valor(obs, alpha=alpha))
 
         # Inicialización del registro en Tensorboard
         tblogger = TensorboardLogger("Q-SARSA (dr=" + str(discount_rate) + "-lr=" + str(lr) + "-lrdecay=" + str(lrdecay) + "e" + str(n_episodes_decay) + ")", episode_period=tb_episode_period)
@@ -36,8 +36,7 @@ class Q_SARSA:
             episode_steps += 1
 
             # Selección de la próxima acción usando la política epsilon-greedy y una combinación ponderada de Q
-            combined_q_values = self.combine_q_values(obs, alpha=alpha)
-            selected_action = np.argmax(combined_q_values)
+            selected_action = policy(self.calcula_valor(obs, alpha=alpha))
 
             # Actualización de la Tabla Q1 con Q-Learning
             max_qvalue1 = max(self.q_table1[obs])
@@ -54,15 +53,15 @@ class Q_SARSA:
                 episode_reward = 0
                 episode_steps = 0
                 obs, _ = self.env.reset()
-                selected_action = np.argmax(self.combine_q_values(obs, alpha=alpha))
+                selected_action = np.argmax(self.calcula_valor(obs, alpha=alpha))
                 
                 # Actualización de la tasa de aprendizaje y alpha por episodios
                 n_episodes += 1
                 if n_episodes % n_episodes_decay == 0:
                     lr *= lrdecay
-                    # Reducir progresivamente alpha, sin bajar de 0.3 para conservar exploración
-                    alpha = max(0.3, alpha - 0.05)
+                    # Reducir progresivamente alpha, sin bajar de 0.4 para conservar exploración
+                    alpha = max(0.4, alpha - 0.01)
 
-    def combine_q_values(self, state, alpha=0.5):
+    def calcula_valor(self, state, alpha):
         # Combinación ponderada de ambas tablas Q, usando alpha como peso
         return alpha * self.q_table1[state] + (1 - alpha) * self.q_table2[state]
